@@ -61,17 +61,27 @@ def analyzeDisease(folder, ppiGraph, permutations):
             print("\t\tRandom graph shows %d interactions for this disease" % count)
     return mnGraphs, randGraphs
 
+def generateRandGraph(ppiGraph):
+    rgraph = ppiGraph.copy()
+    edges = rgraph.getEdges()
+    print("\tCreating random graph with %d edge-switches..." %
+            (len(edges)))
+    for x in range(0,rgraph.numEdges):
+        analysis.switchEdges(rgraph, edges)
+    return rgraph
+
 def generateMNGraph(ppiGraph):
-    print("\tCreating random graph...")
+    print("\tCreating random graph by adding %d random edges..." %
+            (ppiGraph.numEdges/2))
     randgraph = graph.Graph({k: graph.Node(k) for k in
                     ppiGraph.Nodes.keys()})
-    start = time.time()
+    prots = list(randgraph.Nodes.keys())
+    #start = time.time()
     for j in range(0, ppiGraph.numEdges):
         #if j % 1000 == 0:
            # end = time.time()
            # print("Formed %d edges in %.3f" % (j,(end - start)))
            # start = end
-        prots = list(randgraph.Nodes.keys())
         p1 = analysis.getRandItem(prots)
         p2 = analysis.getRandItem(prots)
         while randgraph.has_edge(p1,p2):
@@ -79,13 +89,6 @@ def generateMNGraph(ppiGraph):
             p2 = analysis.getRandItem(prots)
         randgraph.add_edge(p1,p2)
     return randgraph
-
-def generateRandGraph(ppiGraph):
-    rgraph = ppiGraph.copy()
-    edges = rgraph.getEdges()
-    for x in range(0,2*rgraph.numEdges):
-        analysis.switchEdges(rgraph, edges)
-    return rgraph
 
 def countConnections(nodes, graph):
     count = 0

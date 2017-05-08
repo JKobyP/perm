@@ -8,23 +8,44 @@ def meanDegree(ppi, proteinlist):
     return meanDeg
 
 def nRandProts(n, prots):
-    indices = []
+    randlist = []
     for i in range(0,n):
-        r = int(random.uniform(0,len(prots)-1))
-        while r in indices:
-            r = int(random.uniform(0,len(prots)-1))
-        indices.append(r)
-    return list(map(lambda x: prots[x], indices))
+        r = random.choice(prots)
+        while r in randlist:
+            r = random.choice(prots)
+        randlist.append(r)
+    return randlist
 
 def getRandItem(items):
-    return items[int(random.uniform(0,len(items)-1))]
+    return random.choice(items)
 
 def switchEdges(g, edges):
     while True:
         e1 = getRandItem(edges)
         e2 = getRandItem(edges)
-        #print("Before: E1.frm's neighbors: {0}\ne2.frm's neighbors:{1}"
-        #        .format(g[e1.frm].getNeighbors(), g[e2.frm].getNeighbors()))
         if e1 != e2 and e1.frm != e2.frm and e1.to != e2.to:
-            e1.to, e2.to = e2.to, e1.to
+            g.remove_edge(e1.frm.key,e1.to.key)
+            g.remove_edge(e2.frm.key,e2.to.key)
+            g.add_edge(e1.frm.key, e2.to.key)
+            g.add_edge(e2.frm.key, e1.to.key)
             return
+
+def countTriangles(graph):
+    trials = int(graph.numNodes / 2)
+    fails = 0
+    for n in nRandProts(trials, graph.getLabels()):
+        neighbors = graph.Nodes[n].getNeighbors()
+        if len(neighbors) < 2:
+            fails += 1
+        else:
+            e1 = getRandItem(neighbors)
+            e2 = e1
+            ctr = 0
+            while e2 == e1:
+                ctr += 1
+                if ctr > 5:
+                    break
+                e2 = getRandItem(neighbors)
+            if e1 not in e2.getNeighbors():
+                fails += 1
+    return (trials - fails) / trials

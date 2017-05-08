@@ -10,18 +10,29 @@ from optparse import OptionParser
 def readPPI(filename, thresh):
     f = open(filename, 'r')
     o = f.readlines()
+    return parsePPI(o, thresh), o
+
+def parsePPI(o, thresh):
     g = graph.Graph()
-    for line in o:
-        line = line.split("\t")
+    for line1 in o:
+        line = line1.split("\t")
         frm = line[0].strip()
         to = line[2].strip()
         score = float(line[4])
+        if frm == to:
+            continue
         g.add_node(frm)
-        g.add_node(to)
-        if score > thresh:
-            g.add_edge(frm, to, w=thresh)
+        # sometimes the "to" column has a comma-separated list
+        if ',' in to:
+            for n in to.split(','):
+                g.add_node(n.strip())
+                if score > thresh:
+                    g.add_edge(frm, n, w=thresh)
+        else:
+            g.add_node(to)
+            if score > thresh:
+                g.add_edge(frm, to, w=thresh)
     return g
-
 
 def main():
     parser = OptionParser()
@@ -54,7 +65,7 @@ def main():
     diseaseFolder = options.diseaseFolder
     permutations = int(options.permutations)
     print("Reading PPI graph: {0}...".format(ppifile))
-    ppiGraph = readPPI(ppifile,threshold)
+    ppiGraph, out = readPPI(ppifile,threshold)
     print("Read in {0} nodes".format(len(ppiGraph.Nodes)))
 
     if options.dokinase:
@@ -67,8 +78,6 @@ def main():
     if options.domodule:
         print("\n-------- Analyzing Modularity --------")
         modularity.analyzeModularity(ppiGraph, mngraphs, randgraphs, permutations)
-
-
 
 if __name__ == "__main__":
     main()
